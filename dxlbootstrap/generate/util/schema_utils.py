@@ -70,7 +70,7 @@ def topic_ref_transform(ref_string, topic):
     return str(ref_string.format(topic.replace("/", "~1")))
 
 
-class DxlSchemaWriter():
+class DxlSchemaWriter(object):
 
     def __init__(self, app_name):
         """
