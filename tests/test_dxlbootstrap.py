@@ -72,6 +72,8 @@ class DxlBootstrapTest(unittest.TestCase):
             mock_print.assert_called_with("Generation succeeded.")
             self.assertTrue(os.path.exists(
                 os.path.join(app_dir, "geolocationservice", "app.py")))
+            self.assertTrue(os.path.exists(
+                os.path.join(app_dir, "schema/v0.1", "geolocationservice.yaml")))
 
     def test_generate_client_command(self):
         with _TempDir("genclient") as temp_dir, \

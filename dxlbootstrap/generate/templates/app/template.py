@@ -4,7 +4,8 @@ from dxlbootstrap.generate.core.template \
     import Template, TemplateConfig, TemplateConfigSection, PythonPackageConfigSection
 from dxlbootstrap.generate.core.component \
     import DirTemplateComponent, FileTemplateComponent, CodeTemplateComponent
-
+from dxlbootstrap.generate.util.schema_utils \
+    import DxlSchemaWriter
 
 class AppTemplateConfig(TemplateConfig):
     """
@@ -353,6 +354,83 @@ class AppTemplate(Template):
         sample_basic_dir.add_child(basic_sample_comp)
         components_dict["basic_sample_comp"] = basic_sample_comp
 
+    @staticmethod
+    def _copy_schema_files(context, components_dict, dir_comp):
+        """
+        Copies the application schema file to the specified directory
+
+        :param context: The template context
+        :param components_dict: Dictionary containing components by name (and other info)
+        :param dir_comp: The directory component to copy the files to
+        """
+
+        del components_dict
+
+        config = context.template.template_config
+        app_name = str(config.application_section.name)
+        service_names = config.application_section.services
+
+        yaml_writer = DxlSchemaWriter(app_name)
+
+        if service_names:
+            for service_name in service_names:
+                service = config.get_service_section(service_name)
+                service_type = str(service.service_type)
+
+                yaml_writer.add_service_def_to_schema(service_type)
+                yaml_writer.add_service_ref_to_solution(service_type)
+
+                request_handlers = service.request_handlers
+                if request_handlers:
+                    for request_handler in request_handlers:
+                        req_handler_def = config.get_request_handler_section(request_handler)
+                        topic = str(req_handler_def.topic)
+
+                        yaml_writer.add_request_def_to_schema(topic)
+                        yaml_writer.add_request_ref_to_service(service_type, topic)
+
+        event_handlers = config.application_section.event_handlers
+        if event_handlers:
+            for event_handler in event_handlers:
+                event_handler_def = config.get_event_handler_section(event_handler)
+                topic = str(event_handler_def.topic)
+
+                yaml_writer.add_event_def_to_schema(topic)
+                yaml_writer.add_event_ref_to_solution(topic)
+
+        schema_dict = yaml_writer.schema_dict_yaml
+
+        file_comp = FileTemplateComponent(
+            app_name + ".yaml",
+            "schema/v0.1/schema.tmpl",
+            {
+                "schemaContent": schema_dict
+            }
+        )
+        dir_comp.add_child(file_comp)
+
+    @staticmethod
+    def _build_schema_directory(context, components_dict):
+        """
+        Builds the "schema" directory components of the output
+
+        :param context: The template context
+        :param components_dict: Dictionary containing components by name (and other info)
+        :return: The "schema" directory components of the output
+        """
+
+        root = components_dict["root"]
+
+        schema_dir = DirTemplateComponent("schema")
+        root.add_child(schema_dir)
+
+        schema_version_dir = DirTemplateComponent("v0.1")
+        schema_dir.add_child(schema_version_dir)
+
+        components_dict["schema_comp"] = schema_dir
+
+        AppTemplate._copy_schema_files(context, components_dict, schema_version_dir)
+
     def _build_docs_directory(self, context, components_dict):
         """
         Builds the "docs" directory components of the output
@@ -621,6 +699,7 @@ class AppTemplate(Template):
         self._build_root_directory(context, components_dict)
         self._build_config_directory(context, components_dict)
         self._build_sample_directory(context, components_dict)
+        self._build_schema_directory(context, components_dict)
         self._build_docs_directory(context, components_dict)
         self._build_application_directory(context, components_dict)
         self._build_event_handlers(context, components_dict)

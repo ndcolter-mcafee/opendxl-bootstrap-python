@@ -110,7 +110,7 @@ run_setup(SETUP_PY,
            "--universal"])
 
 # cp -rf config dist
-print("\nCopying config in to dist directory\n")
+print("\nCopying config into dist directory\n")
 copy_tree(os.path.join(DIST_PY_FILE_LOCATION, "config"), os.path.join(DIST_DIRECTORY, "config"))
 
 # Copy everything in to release dir

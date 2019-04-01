@@ -62,7 +62,8 @@ setup(
 
     # Requirements
     install_requires=[
-        "dxlclient>=4.1.0.184"
+        "dxlclient>=4.1.0.184",
+        "pyyaml>=5.1"
     ],
 
     tests_require=TEST_REQUIREMENTS,
@@ -106,10 +107,13 @@ setup(
         "dxlbootstrap.generate.templates.client.static.sample.basic",
         "dxlbootstrap.generate.templates.client.static.sample.basic.code",
         "dxlbootstrap.generate.templates.client.static.doc",
-        "dxlbootstrap.generate.templates.client.static.doc.sdk"
+        "dxlbootstrap.generate.templates.client.static.doc.sdk",
+        "dxlbootstrap.generate.util"
     ],
 
     package_data={'': ['*.tmpl']},
+
+    include_package_data=True,
 
     # Details
     url="http://www.mcafee.com/",
